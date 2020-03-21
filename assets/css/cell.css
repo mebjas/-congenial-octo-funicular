@@ -1,0 +1,83 @@
+
+/** Cell */
+.cell {
+    position: absolute;
+}
+
+.cell img {
+    position: absolute;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    top: -7px;
+    left: 0px;
+}
+
+.cell .top {
+    border-bottom-color: rgb(0, 185, 231);
+    border-bottom-style: solid;
+}
+
+.cell .middle {
+    background: rgb(0, 185, 231);
+}
+
+.cell .bottom {
+    border-top-color: rgb(0, 185, 231);
+    border-top-style: solid;
+}
+
+.cell.unexplored .top {
+    border-bottom-color: #6C6;
+}
+
+.cell.unexplored .middle {
+    background: #6C6;
+}
+
+.cell.unexplored .bottom {
+    border-top-color: #6C6;
+}
+
+/** Player 1 **/
+.cell.player1 .top {
+    border-bottom-color: rgb(246, 189, 109);
+}
+
+.cell.player1 .middle {
+    background: rgb(246, 189, 109);
+}
+
+.cell.player1 .bottom {
+    border-top-color: rgb(246, 189, 109);
+}
+
+.cell.player2 .top {
+    border-bottom-color: rgb(170, 229, 248);
+}
+
+.cell.player2 .middle {
+    background: rgb(170, 229, 248);
+}
+
+.cell.player2 .bottom {
+    border-top-color: rgb(170, 229, 248);
+}
+
+/** Override for all **/
+.cell:hover, .cell.selected {
+    opacity: .5;
+    cursor: pointer;
+}
+
+.cell.reachable .top {
+    border-bottom-color: rgb(229, 232, 202);
+}
+
+.cell.reachable .middle {
+    background: rgb(229, 232, 202);
+}
+
+.cell.reachable .bottom {
+    border-top-color: rgb(229, 232, 202);
+}
