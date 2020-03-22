@@ -673,7 +673,89 @@ class PlayerTerritory extends Territory {
 
 class Map {
     constructor(mapData) {
-        // TODO(mebjas): validate the json data
-        this.mapData = mapData;
+        this.mapData = this._getVerifiedMapData(mapData);
+    }
+
+    _getVerifiedMapData(mapData) {
+        const requiredKeys = ["territory", "players"];
+
+        // Do validations prior to modification.
+        for (var i = 0; i < requiredKeys.length; i++) {
+            const requiredKey = requiredKeys[i];
+            if (!(requiredKey in mapData)) {
+                throw `${requiredKey} missing in mapData, it's non optional`;
+            }
+        }
+
+        if (!("trees" in mapData)) {
+            mapData["trees"] = [];
+        }
+
+        if (!("towers" in mapData)) {
+            mapData["towers"] = [];
+        }
+
+        // Verify player data.
+        if (mapData["players"].length < 2) {
+            throw `A map should define minimum two players`;
+        }
+
+        for (var i = 0; i < mapData["players"].length; i++) {
+            mapData["players"][i] = this._getVerifiedPlayer(mapData["players"][i]);
+        }
+
+        return mapData;
+    }
+
+    _getVerifiedPlayer(player) {
+        if (!player.name) {
+            throw "Player name is missing.";
+        }
+
+        if (!player.territory || player.territory.length < 1) {
+            throw "Player needs atleast one territory.";
+        }
+
+        if (!player.houses || player.houses.length < 1) {
+            throw "Player needs atleast one house.";
+        }
+
+        if (!player.human) {
+            player.human = [];
+        }
+
+        if (!player.towers) {
+            player.towers = [];
+        }
+
+        const tempTerritoryMapping = {};
+        for (var i = 0; i < player.territory.length; i++) {
+            const territory = player.territory[i];
+            const key = getCellIdFromCell(territory);
+            tempTerritoryMapping[key] = true;
+        }
+
+        function verifyMapping(entities, type) {
+            for (var i = 0; i < entities.length; i++) {
+                const entity = entities[i];
+                const key = getCellIdFromCell(entity);
+                if (!(key in tempTerritoryMapping)) {
+                    throw `houses, humans, towers should belong to player.territory. `
+                        +`Entity of type ${type} cannot be added to (${entity.x}, ${entity.y}).`
+                }
+            }
+        }
+
+        verifyMapping(player.houses);
+        verifyMapping(player.human);
+        verifyMapping(player.towers);
+
+        if (!player.initialMoney) {
+            player.initialMoney = 0;
+        } else if (player.initialMoney < 0) {
+            throw `Player initialMoney cannot be negative, ${player.initialMoney} is invalid for ${player.name}`;
+        }
+
+        return player;
     }
 }
