@@ -89,17 +89,17 @@ class Game {
 
             // render homes
             player.houses.forEach(function(house) {
-                houseOf(house.type, house.x, house.y, playerObj).render();
+                HouseFactory.create(house.type, house.x, house.y, playerObj).render();
             });
 
             // render humans
             player.human.forEach(function(person) {
-                humanOf(person.type, person.x, person.y, playerObj).render();
+                HumanFactory.create(person.type, person.x, person.y, playerObj).render();
             });
 
             // render towers
             player.towers.forEach(function(tower) {
-                towerOf(tower.type, tower.x, tower.y, playerObj).render();
+                TowerFactory.create(tower.type, tower.x, tower.y, playerObj).render();
             });
         })
     }
@@ -127,7 +127,7 @@ class Game {
         }
 
         towers.forEach(function(tower) {
-            towerOf(tower.type, tower.x, tower.y, /* owner= */ undefined).render();
+            TowerFactory.create(tower.type, tower.x, tower.y, /* owner= */ undefined).render();
         });
     }
 

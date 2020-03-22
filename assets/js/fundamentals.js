@@ -377,23 +377,27 @@ class CastleHouse extends House {
     }
 }
 
-// factory method.
-function houseOf(type, x, y, owner) {
-    switch (type) {
-        case "CASTLE": return new CastleHouse(x, y, owner);
-        case "BASIC": return new BasicHouse(x, y, owner);
+/** Factory for houses. */
+class HouseFactory {
+    constructor() {}
+
+    static create(type, x, y, owner) {
+        switch (type) {
+            case "CASTLE": return new CastleHouse(x, y, owner);
+            case "BASIC": return new BasicHouse(x, y, owner);
+        }
+    
+        throw `Unsupported house type ${type}`;
     }
 
-    throw `Unsupported house type ${type}`;
-}
-
-function getCostOfHouse(type) {
-    switch (type) {
-        case "CASTLE": return CastleHouse.Cost;
-        case "BASIC": return BasicHouse.Cost;
+    static getCost(type) {
+        switch (type) {
+            case "CASTLE": return CastleHouse.Cost;
+            case "BASIC": return BasicHouse.Cost;
+        }
+    
+        throw `Unsupported house type ${type}`;
     }
-
-    throw `Unsupported house type ${type}`;
 }
 //#endregion
 
@@ -505,27 +509,31 @@ class Palladin extends Human {
     }
 }
 
-// factory method.
-function humanOf(type, x, y, owner) {
-    switch(type) {
-        case "PALLADIN": return new Palladin(x, y, owner);
-        case "KNIGHT": return new Knight(x, y, owner);
-        case "SPEARMAN": return new Spearman(x, y, owner);
-        case "FARMER": return new Farmer(x, y, owner);
+/** Factory class for human creation. */
+class HumanFactory {
+    constructor() {}
+
+    static create(type, x, y, owner) {
+        switch(type) {
+            case "PALLADIN": return new Palladin(x, y, owner);
+            case "KNIGHT": return new Knight(x, y, owner);
+            case "SPEARMAN": return new Spearman(x, y, owner);
+            case "FARMER": return new Farmer(x, y, owner);
+        }
+    
+        throw `Unsupported human type ${type}`;
     }
 
-    throw `Unsupported human type ${type}`;
-}
-
-function getCostOfHuman(type) {
-    switch(type) {
-        case "PALLADIN": return Palladin.Cost;
-        case "KNIGHT": return Knight.Cost;
-        case "SPEARMAN": return Spearman.Cost;
-        case "FARMER": return Farmer.Cost;
+    static getCost() {
+        switch(type) {
+            case "PALLADIN": return Palladin.Cost;
+            case "KNIGHT": return Knight.Cost;
+            case "SPEARMAN": return Spearman.Cost;
+            case "FARMER": return Farmer.Cost;
+        }
+    
+        throw `Unsupported human type ${type}`;
     }
-
-    throw `Unsupported human type ${type}`;
 }
 // #endregion
 
@@ -600,24 +608,27 @@ class StrongTower extends Tower {
     }
 }
 
-// factory method.
-function towerOf(type, x, y, owner) {
-    switch(type) {
-        case "BASIC": return new BasicTower(x, y, owner);
-        case "STRONG": return new StrongTower(x, y, owner);
+/** Factory class for tower creation. */
+class TowerFactory {
+    constructor() {}
+
+    static create(type, x, y, owner) {
+        switch(type) {
+            case "BASIC": return new BasicTower(x, y, owner);
+            case "STRONG": return new StrongTower(x, y, owner);
+        }
+    
+        throw `Unsupported tower type ${type}`;
     }
 
-    throw `Unsupported tower type ${type}`;
-}
-
-// factory feasibility cost method.
-function getCostOfTower(type) {
-    switch(type) {
-        case "BASIC": return BasicTower.Cost;
-        case "STRONG": return StrongTower.Cost;
+    static getCost(type) {
+        switch(type) {
+            case "BASIC": return BasicTower.Cost;
+            case "STRONG": return StrongTower.Cost;
+        }
+    
+        throw `Unsupported tower type ${type}`;
     }
-
-    throw `Unsupported tower type ${type}`;
 }
 //#endregion
 
@@ -737,37 +748,43 @@ class PlayerTerritory extends Territory {
 //#endregion
 
 //#region MISC method and classes.
+class singleEntityObjFactory {
+    constructor() {}
 
-/**
- * Super factory method, creates any object you desire.
- * 
- * <p> Well only supports base types: house, humar and tower.
- * 
- * @param {String} base the base entity
- * @param {String} type the type of entity
- * @param {int} x coordinate x poistion in the mesh
- * @param {int} y coordinate y poistion in the mesh
- * @param {Player} owner (Optional) the owner of the object.
- */
-function singleEntityObjOf(base, type, x, y, owner) {
-    switch(base) {
-        case "houses": return houseOf(type, x, y, owner);
-        case "human": return humanOf(type, x, y, owner);
-        case "towers": return towerOf(type, x, y, owner);
+    // TODO(mebjas): Make this private somehow.
+    static baseToFactoryMapping = {
+        "houses": HouseFactory,
+        "human": HumanFactory,
+        "towers": TowerFactory,
+    };
+
+    /**
+     * Super factory method, creates any object you desire.
+     * 
+     * <p> Well only supports base types: house, humar and tower.
+     * 
+     * @param {String} base the base entity
+     * @param {String} type the type of entity
+     * @param {int} x coordinate x poistion in the mesh
+     * @param {int} y coordinate y poistion in the mesh
+     * @param {Player} owner (Optional) the owner of the object.
+     */
+    static create(base, type, x, y, owner) {
+        if (!(base in baseToFactoryMapping)) {
+            throw `type: ${type} is not supported for creation`;
+        }
+
+        return baseToFactoryMapping[base].create(type, x, y, owner);
     }
 
-    throw `type: ${type} is not supported for creation`;
-}
+    /** Gets the cost of creation for {@param base} and {@param type}. */
+    static getCost(base, type) {
+        if (!(base in baseToFactoryMapping)) {
+            throw `type: ${type} is not supported for creation`;
+        }
 
-/** Gets the cost of creation for {@param base} and {@param type}. */
-function getCostOfSingleEntityObj(base, type) {
-    switch(base) {
-        case "houses": return getCostOfHouse(type);
-        case "human": return getCostOfHuman(type);
-        case "towers": return getCostOfTower(type);
+        return baseToFactoryMapping[base].getCost(type);
     }
-
-    throw `type: ${type} is not supported for creation`;
 }
 //#endregion
 
