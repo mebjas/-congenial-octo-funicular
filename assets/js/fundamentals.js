@@ -1,6 +1,7 @@
 /** *************************************************   */
 /**             GLOBAL CONSTANTS & Variables            */
 /** *************************************************   */
+//#region global constants
 var MESH_WIDTH = document.getElementById("main").offsetWidth;
 var MESH_HEIGHT = document.getElementById("main").offsetHeight;
 const CONTAINER = $("#container #main");
@@ -46,10 +47,12 @@ const IMAGE_MAPS = {};
 // global map of objects
 const OBJMAP = {};
 const TERRITORYMAP = {};
+//#endregion
 
 /** *************************************************   */
 /**             GLOBAL Methods                          */
 /** *************************************************   */
+//#region global methods
 function getCellId(x, y) {
     return `cell_${x}_${y}`;
 }
@@ -192,10 +195,12 @@ function getImage(base, type) {
 
     return IMAGE_MAPS[key];
 }
+//#endregion
 
 /** *************************************************   */
 /**             Object classes                          */
 /** *************************************************   */
+//#region BaseObject, SingleEntityObj & OwnedSingleEntityObj
 class BaseObject {
     constructor(x, y, growth) {
         if (new.target == BaseObject) {
@@ -210,45 +215,6 @@ class BaseObject {
 
     render() {
         throw "Not implemented in BaseObject";
-    }
-}
-
-class Player {
-    constructor(id, name, initialMoney) {
-        this.id = id;
-        this.name = name;
-
-        // TODO(mebjas): add logic to initialize this with map.
-        // TODO(mebjas): add logic to update this
-        this.economy = {
-            money: initialMoney,
-            growth: 0
-        }
-    }
-    
-    static get DEFAULT_SHEILD_TIMEOUT() {
-        return 1000;
-    }
-
-    setSheildTimeout(callback) {
-        this._lastSheildTimeoutCallback = callback;
-        this._sheildTimeout = setTimeout(() => {
-            if (this._lastSheildTimeoutCallback) {
-                this._lastSheildTimeoutCallback();
-            }
-        }, Player.DEFAULT_SHEILD_TIMEOUT);
-    }
-
-    cancelSheildTimeout() {
-        // If something was set, call it.
-        if (this._lastSheildTimeoutCallback) {
-            this._lastSheildTimeoutCallback();
-        }
-
-        if (this._sheildTimeout) {
-            clearTimeout(this._sheildTimeout);
-            this._sheildTimeout = undefined;
-        }
     }
 }
 
@@ -295,15 +261,15 @@ class SingleEntityObj extends BaseObject {
 }
 
 class OwnedSingleEntityObj extends SingleEntityObj {
-    constructor(x, y, owner, growth, power, cost) {
+    constructor(x, y, owner, growth, power) {
         super(x, y, growth);
 
         if (new.target == OwnedSingleEntityObj) {
             throw "cannot create instance of OwnedSingleEntityObj directly";
         }
 
-        if (power < 0 || cost < 0) {
-            throw "power and cost cannot be < 0";
+        if (power < 0) {
+            throw "power cannot be < 0";
         }
 
         const key = getCellId(x, y);
@@ -318,12 +284,52 @@ class OwnedSingleEntityObj extends SingleEntityObj {
         }
 
         this.power = power;
-        this.cost = cost;
     }
 }
+//#endregion
 
-////////// TREES //////////////////////////////
+//#region Player
+class Player {
+    constructor(id, name, initialMoney) {
+        this.id = id;
+        this.name = name;
 
+        // TODO(mebjas): add logic to initialize this with map.
+        // TODO(mebjas): add logic to update this
+        this.economy = {
+            money: initialMoney,
+            growth: 0
+        }
+    }
+    
+    static get DEFAULT_SHEILD_TIMEOUT() {
+        return 1000;
+    }
+
+    setSheildTimeout(callback) {
+        this._lastSheildTimeoutCallback = callback;
+        this._sheildTimeout = setTimeout(() => {
+            if (this._lastSheildTimeoutCallback) {
+                this._lastSheildTimeoutCallback();
+            }
+        }, Player.DEFAULT_SHEILD_TIMEOUT);
+    }
+
+    cancelSheildTimeout() {
+        // If something was set, call it.
+        if (this._lastSheildTimeoutCallback) {
+            this._lastSheildTimeoutCallback();
+        }
+
+        if (this._sheildTimeout) {
+            clearTimeout(this._sheildTimeout);
+            this._sheildTimeout = undefined;
+        }
+    }
+}
+//#endregion
+
+//#region trees
 class PalmTree extends SingleEntityObj {
     constructor(x, y) {
         super(x, y, /* growth= */ -1);
@@ -337,11 +343,12 @@ class PineTree extends SingleEntityObj {
         this.imageSrc = getImage(BASE_TREES, "PINE");
     }
 }
+//#endregion
 
-////////// House //////////////////////////////
+//#region house
 class House extends OwnedSingleEntityObj {
-    constructor(x, y, owner, growth, power, cost) {
-        super(x, y, owner, growth, power, cost);
+    constructor(x, y, owner, growth, power) {
+        super(x, y, owner, growth, power);
         if (new.target == House) {
             throw "cannot create instance of House directly";
         }
@@ -350,18 +357,27 @@ class House extends OwnedSingleEntityObj {
 
 class BasicHouse extends House {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ 4, /* power= */ 0, /* cost= */ 10);
+        super(x, y, owner, /* growth= */ 4, /* power= */ 0);
         this.imageSrc = getImage(BASE_HOUSES, "BASIC");
+    }
+
+    static get Cost() {
+        return 10;
     }
 }
 
 class CastleHouse extends House {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ 5, /* power= */ 1, /* cost= */ 15);
+        super(x, y, owner, /* growth= */ 5, /* power= */ 1);
         this.imageSrc = getImage(BASE_HOUSES, "CASTLE");
+    }
+
+    static get Cost() {
+        return 15;
     }
 }
 
+// factory method.
 function houseOf(type, x, y, owner) {
     switch (type) {
         case "CASTLE": return new CastleHouse(x, y, owner);
@@ -371,10 +387,20 @@ function houseOf(type, x, y, owner) {
     throw `Unsupported house type ${type}`;
 }
 
-////////// Human //////////////////////////////
+function getCostOfHouse(type) {
+    switch (type) {
+        case "CASTLE": return CastleHouse.Cost;
+        case "BASIC": return BasicHouse.Cost;
+    }
+
+    throw `Unsupported house type ${type}`;
+}
+//#endregion
+
+//#region human
 class Human extends OwnedSingleEntityObj {
-    constructor(x, y, owner, growth, power, cost, range, canKillSamePower) {
-        super(x, y, owner, growth, power, cost);
+    constructor(x, y, owner, growth, power, range, canKillSamePower) {
+        super(x, y, owner, growth, power);
 
         if (new.target == Human) {
             throw "cannot create instance of Human directly";
@@ -390,8 +416,6 @@ class Human extends OwnedSingleEntityObj {
             this.canKillSamePower = true;
         }
     }
-
-    getLegalMovementOptions() {}
 
     _throwIfIllegalMovementRequested(x, y) {
         if (!isValidTerritory(x, y)) {
@@ -438,37 +462,50 @@ class Human extends OwnedSingleEntityObj {
 
 class Farmer extends Human {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ -2, /* power= */ 1, 
-            /* cost= */ 10, /* range= */ 4);
+        super(x, y, owner, /* growth= */ -2, /* power= */ 1, /* range= */ 4);
         this.imageSrc = getImage(BASE_HUMAN, "FARMER");
+    }
+
+    static get Cost() {
+        return 10;
     }
 }
 
 class Spearman extends Human {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ -6, /* power= */ 2, 
-            /* cost= */ 20, /* range= */ 4);
+        super(x, y, owner, /* growth= */ -6, /* power= */ 2, /* range= */ 4);
         this.imageSrc = getImage(BASE_HUMAN, "SPEARMAN");
+    }
+
+    static get Cost() {
+        return 20;
     }
 }
 
 class Knight extends Human {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ -18, /* power= */ 3, 
-            /* cost= */ 30, /* range= */ 5);
+        super(x, y, owner, /* growth= */ -18, /* power= */ 3, /* range= */ 5);
         this.imageSrc = getImage(BASE_HUMAN, "KNIGHT");
+    }
+
+    static get Cost() {
+        return 30;
     }
 }
 
 class Palladin extends Human {
     constructor(x, y, owner) {
         super(x, y, owner, /* growth= */ -36, /* power= */ 4, 
-            /* cost= */ 40, /* range= */ 5, 
-            /* canKillSamePower= */ true);
+            /* range= */ 5, /* canKillSamePower= */ true);
         this.imageSrc = getImage(BASE_HUMAN, "PALLADIN");
+    }
+
+    static get Cost() {
+        return 40;
     }
 }
 
+// factory method.
 function humanOf(type, x, y, owner) {
     switch(type) {
         case "PALLADIN": return new Palladin(x, y, owner);
@@ -480,17 +517,29 @@ function humanOf(type, x, y, owner) {
     throw `Unsupported human type ${type}`;
 }
 
-////////// Towers //////////////////////////////
+function getCostOfHuman(type) {
+    switch(type) {
+        case "PALLADIN": return Palladin.Cost;
+        case "KNIGHT": return Knight.Cost;
+        case "SPEARMAN": return Spearman.Cost;
+        case "FARMER": return Farmer.Cost;
+    }
+
+    throw `Unsupported human type ${type}`;
+}
+// #endregion
+
+//#region towers
 class Tower extends SingleEntityObj {
-    constructor(x, y, owner, growth, power, cost, range) {
+    constructor(x, y, owner, growth, power, range) {
         super(x, y, growth);
 
         if (new.target == Tower) {
             throw "cannot create instance of Tower directly";
         }
 
-        if (power < 0 || cost < 0 || range < 0) {
-            throw "power, cost or range cannot be < 0";
+        if (power < 0 || range < 0) {
+            throw "power or range cannot be < 0";
         }
 
         const key = getCellId(x, y);
@@ -502,7 +551,6 @@ class Tower extends SingleEntityObj {
         }
 
         this.power = power;
-        this.cost = cost;
         this.range = range;
     }
 
@@ -532,20 +580,27 @@ class Tower extends SingleEntityObj {
 
 class BasicTower extends Tower {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ -1, /* power= */ 2, 
-            /* cost= */ 15, /* range= */ 1);
+        super(x, y, owner, /* growth= */ -1, /* power= */ 2, /* range= */ 1);
         this.imageSrc = getImage(BASE_TOWERS, "BASIC");
+    }
+
+    static get Cost() {
+        return 15;
     }
 }
 
 class StrongTower extends Tower {
     constructor(x, y, owner) {
-        super(x, y, owner, /* growth= */ -6, /* power= */ 3, 
-            /* cost= */ 35, /* range= */ 1);
+        super(x, y, owner, /* growth= */ -6, /* power= */ 3, /* range= */ 1);
         this.imageSrc = getImage(BASE_TOWERS, "STRONG");
+    }
+
+    static get Cost() {
+        return 35;
     }
 }
 
+// factory method.
 function towerOf(type, x, y, owner) {
     switch(type) {
         case "BASIC": return new BasicTower(x, y, owner);
@@ -555,7 +610,18 @@ function towerOf(type, x, y, owner) {
     throw `Unsupported tower type ${type}`;
 }
 
-////////// Territory //////////////////////////////
+// factory feasibility cost method.
+function getCostOfTower(type) {
+    switch(type) {
+        case "BASIC": return BasicTower.Cost;
+        case "STRONG": return StrongTower.Cost;
+    }
+
+    throw `Unsupported tower type ${type}`;
+}
+//#endregion
+
+//#region territory
 class Territory extends BaseObject {
     constructor(x, y, growth, /* Optional */ owner) {
         super(x, y, growth);
@@ -668,9 +734,44 @@ class PlayerTerritory extends Territory {
         this.render();
     }
 }
+//#endregion
 
-////////// MAP and Game //////////////////////////////
+//#region MISC method and classes.
 
+/**
+ * Super factory method, creates any object you desire.
+ * 
+ * <p> Well only supports base types: house, humar and tower.
+ * 
+ * @param {String} base the base entity
+ * @param {String} type the type of entity
+ * @param {int} x coordinate x poistion in the mesh
+ * @param {int} y coordinate y poistion in the mesh
+ * @param {Player} owner (Optional) the owner of the object.
+ */
+function singleEntityObjOf(base, type, x, y, owner) {
+    switch(base) {
+        case "houses": return houseOf(type, x, y, owner);
+        case "human": return humanOf(type, x, y, owner);
+        case "towers": return towerOf(type, x, y, owner);
+    }
+
+    throw `type: ${type} is not supported for creation`;
+}
+
+/** Gets the cost of creation for {@param base} and {@param type}. */
+function getCostOfSingleEntityObj(base, type) {
+    switch(base) {
+        case "houses": return getCostOfHouse(type);
+        case "human": return getCostOfHuman(type);
+        case "towers": return getCostOfTower(type);
+    }
+
+    throw `type: ${type} is not supported for creation`;
+}
+//#endregion
+
+//#region Map class
 class Map {
     constructor(mapData) {
         this.mapData = this._getVerifiedMapData(mapData);
@@ -759,3 +860,4 @@ class Map {
         return player;
     }
 }
+//#endregion
