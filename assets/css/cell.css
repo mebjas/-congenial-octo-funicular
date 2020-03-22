@@ -64,8 +64,20 @@
     border-top-color: rgb(170, 229, 248);
 }
 
+.cell.player3 .top {
+    border-bottom-color: rgb(240, 171, 247);
+}
+
+.cell.player3 .middle {
+    background: rgb(240, 171, 247);
+}
+
+.cell.player3 .bottom {
+    border-top-color: rgb(240, 171, 247);
+}
+
 /** Override for all **/
-.cell:hover, .cell.selected {
+.cell.selectable:hover, .cell.selected {
     opacity: .5;
     cursor: pointer;
 }
