@@ -2,14 +2,14 @@
 /**            MAP 1 Temp data                          */
 /** *************************************************   */
 const MAP1 = {
-    "upperBound": {"COUNT_CELL_X": 22, "COUNT_CELL_Y": 18},
+    "upperBound": {"COUNT_CELL_X": 25, "COUNT_CELL_Y": 20},
     "territory": [{"x":11,"y":5},{"x":12,"y":5},{"x":12,"y":6},{"x":13,"y":6},{"x":13,"y":5},{"x":13,"y":4},{"x":12,"y":4},{"x":14,"y":6},{"x":13,"y":7},{"x":12,"y":7},{"x":13,"y":8},{"x":12,"y":8},{"x":13,"y":9},{"x":14,"y":10},{"x":13,"y":10},{"x":12,"y":9},{"x":11,"y":7},{"x":11,"y":6},{"x":10,"y":6},{"x":10,"y":7},{"x":9,"y":7},{"x":9,"y":6},{"x":10,"y":8},{"x":11,"y":8},{"x":9,"y":9},{"x":8,"y":9},{"x":9,"y":8},{"x":8,"y":7},{"x":8,"y":8},{"x":7,"y":9},{"x":7,"y":8},{"x":7,"y":7},{"x":8,"y":6},{"x":8,"y":5},{"x":9,"y":5},{"x":10,"y":5},{"x":10,"y":4},{"x":9,"y":4},{"x":9,"y":3},{"x":9,"y":10},{"x":8,"y":10},{"x":14,"y":4},{"x":15,"y":4},{"x":16,"y":4},{"x":15,"y":5},{"x":14,"y":5},{"x":15,"y":6},{"x":15,"y":7},{"x":14,"y":7},{"x":16,"y":6},{"x":15,"y":8},{"x":14,"y":8},{"x":14,"y":9},{"x":7,"y":5},{"x":7,"y":6},{"x":6,"y":5},{"x":6,"y":6},{"x":5,"y":5},{"x":6,"y":4},{"x":5,"y":4},{"x":5,"y":3},{"x":6,"y":7},{"x":6,"y":8},{"x":6,"y":9},{"x":7,"y":10},{"x":6,"y":10},{"x":5,"y":9},{"x":8,"y":4},{"x":7,"y":4},{"x":7,"y":3},{"x":8,"y":3},{"x":8,"y":2},{"x":7,"y":2},{"x":7,"y":1},{"x":9,"y":2},{"x":10,"y":2},{"x":10,"y":3},{"x":11,"y":4},{"x":17,"y":10},{"x":16,"y":11},{"x":17,"y":11},{"x":18,"y":10},{"x":17,"y":9},{"x":18,"y":9},{"x":19,"y":10},{"x":19,"y":9},{"x":19,"y":8},{"x":10,"y":14},{"x":11,"y":14},{"x":10,"y":15},{"x":11,"y":15},{"x":12,"y":14},{"x":12,"y":13},{"x":11,"y":13},{"x":13,"y":14},{"x":12,"y":15},{"x":13,"y":13}],
     "trees": [{"x":9,"y":4},{"x":5,"y":3},{"x":5,"y":4},{"x":6,"y":4},{"x":7,"y":4},{"x":8,"y":4},{"x":8,"y":5},{"x":9,"y":5},{"x":10,"y":6},{"x":10,"y":7},{"x":11,"y":6},{"x":10,"y":5},{"x":11,"y":7},{"x":11,"y":8},{"x":12,"y":8},{"x":12,"y":9},{"x":12,"y":7},{"x":7,"y":1},{"x":7,"y":2},{"x":7,"y":3},{"x":8,"y":2},{"x":12,"y":14},{"x":12,"y":13},{"x":11,"y":13},{"x":13,"y":14},{"x":12,"y":15},{"x":13,"y":13},{"x":17,"y":10},{"x":17,"y":9},{"x":18,"y":10},{"x":17,"y":11},{"x":18,"y":9},{"x":19,"y":10},{"x":19,"y":9}],
     "towers": [{"x":16,"y":11, "type": "BASIC"},{"x":19,"y":8, "type": "STRONG"},{"x":10,"y":14, "type": "STRONG"}],
     "players": [
         {
             "name": "minhaz",
-            "territory": [{"x":16,"y":4},{"x":15,"y":4},{"x":15,"y":5}],
+            "territory": [{"x":16,"y":4},{"x":15,"y":4},{"x":15,"y":5}, {"x":14,"y":5}, {"x":15,"y":6}, {"x":16,"y":6}],
             "houses": [{"type": "CASTLE", "x":16,"y":4}],
             "human": [{"type": "FARMER", "x":15,"y":4}],
             "towers": [{"type": "BASIC", "x":15,"y":5}],
@@ -17,10 +17,10 @@ const MAP1 = {
         },
         {
             "name": "nida",
-            "territory": [{"x":6,"y":10},{"x":5,"y":9},{"x":6,"y":9},{"x":7,"y":10}],
+            "territory": [{"x":6,"y":10},{"x":5,"y":9},{"x":6,"y":9},{"x":7,"y":10},{"x":7,"y":9}],
             "houses": [{"type": "CASTLE", "x":6,"y":10}, {"type": "BASIC", "x":7,"y":10}],
-            "human": [{"type": "FARMER", "x":5,"y":9},{"type": "SPEARMAN", "x":6,"y":9}],
-            "towers": [],
+            "human": [{"type": "FARMER", "x":5,"y":9},{"type": "SPEARMAN", "x":7,"y":9}],
+            "towers": [{"x":6,"y":9, "type": "STRONG"}],
             "initialMoney": 10
         },
         {
@@ -176,6 +176,17 @@ class Game {
         }
     }
 
+    _registerClickListeners() {
+        $(".cell.selectable").click(function(e) {
+            // TODO(mebjas): only allow player with turn to activate this.
+            $(".cell.selected").removeClass("selected");
+            const x = parseInt($(this).attr('x'));
+            const y = parseInt($(this).attr('y'));
+            const territory = TERRITORYMAP[getCellId(x, y)];
+            territory.onClick();
+        });
+    }
+
     render() {
         if (!this._currentMap) {
             alert("No map loaded");
@@ -193,6 +204,9 @@ class Game {
     loadMap(mapData) {
         this._currentMap = new Map(mapData);
         this.render();
+
+        // TODO(mebjas): when the game is started.
+        this._registerClickListeners();
     }
 }
 
@@ -206,13 +220,13 @@ $(document).ready(() => {
     var game = new Game();
     game.loadMap(MAP1);
 
-    $(".cell.selectable").click(function(e) {
-        $(".cell.selected").removeClass("selected");
-        const x = parseInt($(this).attr('x'));
-        const y = parseInt($(this).attr('y'));
-        $(this).addClass("player1");
-        console.log(OBJMAP[getCellId(x, y)]);
-        console.log(TERRITORYMAP[getCellId(x, y)]);
-        DATA.push({x: x, y: y});
-    });
+    // $(".cell.selectable").click(function(e) {
+    //     $(".cell.selected").removeClass("selected");
+    //     const x = parseInt($(this).attr('x'));
+    //     const y = parseInt($(this).attr('y'));
+    //     $(this).addClass("player1");
+    //     console.log(OBJMAP[getCellId(x, y)]);
+    //     console.log(TERRITORYMAP[getCellId(x, y)]);
+    //     DATA.push({x: x, y: y});
+    // });
 })

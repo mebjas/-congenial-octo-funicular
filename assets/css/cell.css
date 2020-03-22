@@ -13,6 +13,13 @@
     left: 0px;
 }
 
+.cell img.sheild {
+    width: 80%;
+    height: 80%;
+    top: 5%;
+    left: 5%;
+}
+
 .cell .top {
     border-bottom-color: rgb(0, 185, 231);
     border-bottom-style: solid;
@@ -93,3 +100,4 @@
 .cell.reachable .bottom {
     border-top-color: rgb(229, 232, 202);
 }
+
